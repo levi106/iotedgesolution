@@ -7,6 +7,7 @@ docker run -it --rm \
     -e EdgeHubDevServerCertificateFile=/certs/localhost.pem \
     -e EdgeHubDevTrustBundleFile=/certs/ca.pem \
     -e EdgeHubDevServerPrivateKeyFile=/certs/localhost.key \
+    -e RuntimeLogLevel=debug \
     -v /home/hiroyha/iotedgesolution/_certs:/certs \
     -p 8883:8883 \
     mcr.microsoft.com/azureiotedge-hub:1.4

@@ -30,29 +30,25 @@ internal class ModuleBackgroundService : BackgroundService
 
         _logger.LogInformation("IoT Hub module client initialized.");
 
-        // Register callback to be called when a message is received by the module
-        await _moduleClient.SetInputMessageHandlerAsync("input1", ProcessMessageAsync, null, cancellationToken);
+        await SendEvents(cancellationToken);
     }
 
-    async Task<MessageResponse> ProcessMessageAsync(Message message, object userContext)
+    async Task SendEvents(CancellationToken cancellationToken)
     {
-        int counterValue = Interlocked.Increment(ref _counter);
+        int messageDelay = 10 * 1000;
+        int count = 1;
 
-        byte[] messageBytes = message.GetBytes();
-        string messageString = Encoding.UTF8.GetString(messageBytes);
-        _logger.LogInformation("Received message: {counterValue}, Body: [{messageString}]", counterValue, messageString);
-
-        if (!string.IsNullOrEmpty(messageString))
+        while (!cancellationToken.IsCancellationRequested)
         {
-            using Message pipeMessage = new(messageBytes);
-            foreach (KeyValuePair<string, string> prop in message.Properties)
-            {
-                pipeMessage.Properties.Add(prop.Key, prop.Value);
-            }
-            await _moduleClient!.SendEventAsync("output1", pipeMessage, _cancellationToken);
-
-            _logger.LogInformation("Received message sent");
+            string messageString = "helloworld";
+            using Message message = new(Encoding.UTF8.GetBytes(messageString));
+            message.ContentEncoding = "utf-8";
+            message.ContentType = "text/plain";
+            message.Properties.Add("sequenceNumber", count.ToString());
+            _logger.LogInformation($"Send message: {count}, Body: [{messageString}]");
+            await _moduleClient!.SendEventAsync("output1", message, cancellationToken);
+            count++;
+            await Task.Delay(messageDelay, cancellationToken);
         }
-        return MessageResponse.Completed;
     }
 }
