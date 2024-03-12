@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Client.Transport.Mqtt;
+using Microsoft.Azure.Devices.Client.Transport.Amqp;
 using System.Text;
 
 namespace ModuleA;
@@ -16,8 +17,10 @@ internal class ModuleBackgroundService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
-        MqttTransportSettings mqttSetting = new(TransportType.Mqtt_Tcp_Only);
-        ITransportSettings[] settings = { mqttSetting };
+        // MqttTransportSettings mqttSetting = new(TransportType.Mqtt_Tcp_Only);
+        AmqpTransportSettings amqpSetting = new(TransportType.Amqp_Tcp_Only);
+        //ITransportSettings[] settings = { mqttSetting };
+        ITransportSettings[] settings = { amqpSetting };
 
         // Open a connection to the Edge runtime
         _moduleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
@@ -35,17 +38,18 @@ internal class ModuleBackgroundService : BackgroundService
 
     async Task SendEvents(CancellationToken cancellationToken)
     {
-        int messageDelay = 10 * 1000;
+        int messageDelay = 100;//10 * 1000;
         int count = 1;
+        int dataSize = 10;// 1024 * 440;
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            string messageString = "helloworld";
+            string messageString = new string('*', dataSize);
             using Message message = new(Encoding.UTF8.GetBytes(messageString));
             message.ContentEncoding = "utf-8";
             message.ContentType = "text/plain";
             message.Properties.Add("sequenceNumber", count.ToString());
-            _logger.LogInformation($"Send message: {count}, Body: [{messageString}]");
+            _logger.LogInformation($"Send message: {count}, Size: [{dataSize}]");
             await _moduleClient!.SendEventAsync("output1", message, cancellationToken);
             count++;
             await Task.Delay(messageDelay, cancellationToken);

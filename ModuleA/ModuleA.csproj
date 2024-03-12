@@ -3,9 +3,10 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+    	<RestoreSources>$(RestoreSources);/home/hiroyha/azure-iot-sdk-csharp/bin/pkg;https://api.nuget.org/v3/index.json</RestoreSources>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.42.0" />
+		<PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.42.103" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.NET.Build.Containers" Version="7.0.401" />
 	</ItemGroup>

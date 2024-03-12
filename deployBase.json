@@ -39,6 +39,11 @@
                         "priority": 0,
                         "timeToLiveSecs": 1800
                     },
+                    "moduleA2moduleC": {
+                        "route": "FROM /messages/modules/ModuleA/outputs/output1 INTO BrokeredEndpoint(\"/modules/ModuleC/inputs/input1\")",
+                        "priority": 0,
+                        "timeToLiveSecs": 1800
+                    },
                     "moduleB2cloud": {
                         "route": "FROM /messages/modules/ModuleB/outputs/output1 INTO $upstream",
                         "priority": 1,

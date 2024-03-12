@@ -18,13 +18,17 @@ internal class ModuleBackgroundService : BackgroundService
         _cancellationToken = cancellationToken;
         MqttTransportSettings mqttSetting = new(TransportType.Mqtt_Tcp_Only);
         ITransportSettings[] settings = { mqttSetting };
+        ClientOptions options = new ClientOptions();
+        options.SasTokenTimeToLive = TimeSpan.FromSeconds(20);
+        options.SasTokenRenewalBuffer = 50;
 
         // Open a connection to the Edge runtime
-        _moduleClient = await ModuleClient.CreateFromEnvironmentAsync(settings);
+        _moduleClient = await ModuleClient.CreateFromEnvironmentAsync(settings, options);
 
         // Reconnect is not implented because we'll let docker restart the process when the connection is lost
-        _moduleClient.SetConnectionStatusChangesHandler((status, reason) => 
-            _logger.LogWarning("Connection changed: Status: {status} Reason: {reason}", status, reason));
+        _moduleClient.SetConnectionStatusChangesHandler((status, reason) => {
+            _logger.LogWarning("Connection changed: Status: {status} Reason: {reason}", status, reason);
+        });
 
         await _moduleClient.OpenAsync(cancellationToken);
 
@@ -40,19 +44,20 @@ internal class ModuleBackgroundService : BackgroundService
 
         byte[] messageBytes = message.GetBytes();
         string messageString = Encoding.UTF8.GetString(messageBytes);
-        _logger.LogInformation("Received message: {counterValue}, Body: [{messageString}]", counterValue, messageString);
+        int messageLength = messageString.Length;
+        _logger.LogInformation($"Received message: {counterValue}, MessageBytes:{messageLength}, Body: [{messageString.Substring(0,System.Math.Min(messageLength,10))}...]");
 
-        if (!string.IsNullOrEmpty(messageString))
-        {
-            using Message pipeMessage = new(messageBytes);
-            foreach (KeyValuePair<string, string> prop in message.Properties)
-            {
-                pipeMessage.Properties.Add(prop.Key, prop.Value);
-            }
-            await _moduleClient!.SendEventAsync("output1", pipeMessage, _cancellationToken);
+        // if (!string.IsNullOrEmpty(messageString))
+        // {
+        //     using Message pipeMessage = new(messageBytes);
+        //     foreach (KeyValuePair<string, string> prop in message.Properties)
+        //     {
+        //         pipeMessage.Properties.Add(prop.Key, prop.Value);
+        //     }
+        //     await _moduleClient!.SendEventAsync("output1", pipeMessage, _cancellationToken);
 
-            _logger.LogInformation("Received message sent");
-        }
+        //     _logger.LogInformation("Received message sent");
+        // }
         return MessageResponse.Completed;
     }
 }

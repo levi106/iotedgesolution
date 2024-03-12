@@ -10,4 +10,6 @@ docker run -it --rm \
     -e RuntimeLogLevel=debug \
     -v /home/hiroyha/iotedgesolution/_certs:/certs \
     -p 8883:8883 \
-    mcr.microsoft.com/azureiotedge-hub:1.4
+    -p 5671:5671 \
+    iotedge0219.azurecr.io/microsoft/azureiotedge-hub:1.4.b
+#    mcr.microsoft.com/azureiotedge-hub:1.4
